@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Plataforma Multievento SaaS</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#EEF2FF',
+              100: '#E0E7FF',
+              500: '#6366F1',
+              600: '#4F46E5', // Azul Profundo Principal
+              700: '#4338CA',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome & QRCode.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-200 min-h-screen flex flex-col font-sans">
+
+  <!-- CONFIGURACIÓN OBLIGATORIA DEL BACKEND -->
+  <script>
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbytGNcaZmaBsGBWRY0X3K6pXC1BtP3GJDCUDSs9QpUnnzf0cv4148tsHD6ds3H2PTF8/exec";
+  </script>
+
+  <!-- SPINNER GLOBAL DE CARGA INICIAL -->
+  <div id="loader" class="fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center text-white">
+    <i class="fa-solid fa-circle-notch fa-spin text-5xl text-indigo-500 mb-4"></i>
+    <p class="text-lg font-medium">Cargando plataforma y sincronizando Tasa BCV...</p>
+  </div>
+
+  <!-- NAVBAR & BANNER BCV -->
+  <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo y Título -->
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-md shadow-indigo-500/20">
+          <i class="fa-solid fa-calendar-check"></i>
+        </div>
+        <span id="app-title" class="font-bold text-xl tracking-tight bg-gradient-to-r from-indigo-600 to-indigo-400 bg-clip-text text-transparent">
+          Plataforma SaaS
+        </span>
+      </div>
+
+      <!-- Banner Tasa BCV y Acciones -->
+      <div class="flex items-center space-x-4">
+        <div class="hidden sm:flex items-center space-x-2 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 px-3 py-1.5 rounded-full text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Tasa BCV Oficial: <strong id="bcv-rate">--.--</strong> VES</span>
+        </div>
+
+        <!-- Botón Historial -->
+        <button onclick="openModal('modal-historial')" class="text-sm px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 font-medium transition">
+          <i class="fa-solid fa-search mr-1.5"></i> Mis Registros
+        </button>
+
+        <!-- Botón Admin Check-in -->
+        <button onclick="openModal('modal-admin')" class="text-sm px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 font-medium transition">
+          <i class="fa-solid fa-user-shield"></i>
+        </button>
+
+        <!-- Selector de Tema -->
+        <button id="theme-toggle" class="p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition">
+          <i class="fa-solid fa-moon dark:hidden text-slate-700"></i>
+          <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL (SPA) -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-16">
+    
+    <!-- HERO SECTION -->
+    <section class="text-center py-12 px-4 rounded-3xl bg-gradient-to-b from-indigo-50/50 to-transparent dark:from-indigo-950/20 dark:to-transparent border border-indigo-100/50 dark:border-slate-800">
+      <span class="px-4 py-1.5 rounded-full text-xs font-semibold bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 inline-block mb-4">
+        Gestión de Eventos & Inscripciones 2026
+      </span>
+      <h1 class="text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-900 dark:text-white max-w-3xl mx-auto leading-tight">
+        Participa en nuestros eventos y adquiere planes exclusivos
+      </h1>
+      <p class="mt-4 text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+        Regístrate de forma rápida, segura y convierte montos en tiempo real con la tasa oficial BCV.
+      </p>
+    </section>
+
+    <!-- EVENTOS DESTACADOS -->
+    <section>
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Próximos Eventos</h2>
+          <p class="text-sm text-slate-500 dark:text-slate-400">Reserva tu cupo antes de que se agoten</p>
+        </div>
+      </div>
+      <div id="grid-eventos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Generado dinámicamente -->
+      </div>
+    </section>
+
+    <!-- PRICING GRID (PLANES) -->
+    <section>
+      <div class="text-center max-w-2xl mx-auto mb-10">
+        <h2 class="text-3xl font-bold text-slate-900 dark:text-white">Planes Disponibles</h2>
+        <p class="text-slate-500 dark:text-slate-400 mt-2">Selecciona el plan que mejor se adapte a tus necesidades</p>
+      </div>
+      <div id="grid-planes" class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+        <!-- Generado dinámicamente -->
+      </div>
+    </section>
+
+    <!-- PREGUNTAS FRECUENTES (ACORDEÓN) -->
+    <section class="max-w-3xl mx-auto w-full">
+      <h2 class="text-2xl font-bold text-slate-900 dark:text-white text-center mb-6">Preguntas Frecuentes</h2>
+      <div id="container-faqs" class="space-y-4">
+        <!-- Generado dinámicamente -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 py-8 mt-12">
+    <div class="max-w-7xl mx-auto px-4 text-center text-sm text-slate-500 dark:text-slate-400">
+      <p>© 2026 Plataforma SaaS Multievento. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <!-- ========================================================================= -->
+  <!-- MODALES FLOTANTES -->
+  <!-- ========================================================================= -->
+
+  <!-- 1. MODAL INSCRIPCIÓN -->
+  <div id="modal-inscripcion" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl transform transition-all duration-300 scale-95 border border-slate-200 dark:border-slate-700 my-8">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="modal-title-item" class="text-xl font-bold text-slate-900 dark:text-white">Formulario de Inscripción</h3>
+        <button onclick="closeModal('modal-inscripcion')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form id="form-inscripcion" onsubmit="handleInscripcionSubmit(event)" class="space-y-4">
+        <input type="hidden" id="input-item-id">
+        <input type="hidden" id="input-item-tipo">
+        <input type="hidden" id="input-item-nombre">
+        <input type="hidden" id="input-item-precio">
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Cédula de Identidad *</label>
+          <input type="number" id="field-cedula" required placeholder="Ej: 12345678" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Nombre y Apellido *</label>
+          <input type="text" id="field-nombre" required placeholder="Ej: Juan Pérez" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Fecha de Nacimiento *</label>
+          <div class="grid grid-cols-3 gap-2">
+            <select id="field-dia" required class="px-2 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm"></select>
+            <select id="field-mes" required class="px-2 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm"></select>
+            <select id="field-anio" required class="px-2 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm"></select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Teléfono *</label>
+          <div class="flex space-x-2">
+            <select id="field-prefijo" class="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm">
+              <option value="58">58 (VE)</option>
+              <option value="1">1 (US)</option>
+              <option value="57">57 (CO)</option>
+            </select>
+            <input type="text" id="field-telefono" required placeholder="04141234567" class="flex-grow px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Correo Electrónico (Opcional)</label>
+          <input type="email" id="field-correo" placeholder="correo@ejemplo.com" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">¿Pertenece a Iglesia?</label>
+            <select id="field-iglesia" onchange="toggleIglesia(this.value)" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm">
+              <option value="No">No</option>
+              <option value="Sí">Sí</option>
+            </select>
+          </div>
+          <div id="wrapper-cual-iglesia" class="hidden">
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">¿Cuál?</label>
+            <input type="text" id="field-cual-iglesia" placeholder="Nombre" class="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Franela</label>
+            <select id="field-franela" class="w-full px-2 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm">
+              <option value="S">S</option><option value="M" selected>M</option><option value="L">L</option><option value="XL">XL</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Menú</label>
+            <select id="field-menu" class="w-full px-2 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm">
+              <option value="Estándar">Estándar</option><option value="Vegetariano">Vegetariano</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Bebida</label>
+            <select id="field-bebida" class="w-full px-2 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 text-sm">
+              <option value="Agua">Agua</option><option value="Jugo">Jugo</option><option value="Refresco">Refresco</option>
+            </select>
+          </div>
+        </div>
+
+        <button type="submit" id="btn-submit-inscripcion" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/30 transition flex justify-center items-center">
+          <span>Continuar</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. MODAL REGISTRO DE PAGO -->
+  <div id="modal-pago" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl transform transition-all duration-300 scale-95 border border-slate-200 dark:border-slate-700 my-8">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Reportar Pago</h3>
+        <button onclick="closeModal('modal-pago')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Cuentas Bancarias -->
+      <div class="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 mb-4 text-xs space-y-2">
+        <p class="font-bold text-slate-700 dark:text-slate-300 border-b pb-1">Cuentas Destino Disponible:</p>
+        <div id="list-cuentas" class="space-y-1"></div>
+      </div>
+
+      <!-- Desglose Conversión -->
+      <div class="bg-indigo-50 dark:bg-indigo-950/40 p-4 rounded-xl border border-indigo-200 dark:border-indigo-900 mb-4 flex justify-between items-center">
+        <div>
+          <p class="text-xs text-indigo-700 dark:text-indigo-300">Total a Pagar (USD): <strong id="pago-usd">$0.00</strong></p>
+          <p class="text-xs text-indigo-700 dark:text-indigo-300">Tasa Aplicada: <span id="pago-tasa">0</span> VES</p>
+        </div>
+        <div class="text-right">
+          <p class="text-xs text-slate-500">Monto Exacto en VES:</p>
+          <p class="text-lg font-extrabold text-indigo-600 dark:text-indigo-400" id="pago-ves">0.00 VES</p>
+        </div>
+      </div>
+
+      <form id="form-pago" onsubmit="handlePagoSubmit(event)" class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Tipo de Pago *</label>
+            <select id="pago-tipo" required class="w-full px-3 py-2 rounded-lg border dark:bg-slate-700 text-sm">
+              <option value="Pago Móvil">Pago Móvil</option>
+              <option value="Transferencia">Transferencia</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Fecha *</label>
+            <input type="date" id="pago-fecha" required class="w-full px-3 py-2 rounded-lg border dark:bg-slate-700 text-sm">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Banco Origen *</label>
+            <input type="text" id="pago-banco-origen" placeholder="Ej: Banesco" required class="w-full px-3 py-2 rounded-lg border dark:bg-slate-700 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Nº Referencia *</label>
+            <input type="text" id="pago-referencia" placeholder="Últimos 6 dígitos" required class="w-full px-3 py-2 rounded-lg border dark:bg-slate-700 text-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Banco Destino *</label>
+          <input type="text" id="pago-banco-destino" placeholder="Ej: Banesco Destino" required class="w-full px-3 py-2 rounded-lg border dark:bg-slate-700 text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Monto Transferido (VES) *</label>
+          <input type="number" step="0.01" id="pago-monto" required class="w-full px-3 py-2 rounded-lg border dark:bg-slate-700 text-sm">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase mb-1">Comprobante de Pago (Imagen/PDF) *</label>
+          <input type="file" id="pago-file" accept="image/*,application/pdf" required class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+        </div>
+
+        <button type="submit" id="btn-submit-pago" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg transition flex justify-center items-center">
+          <span id="btn-pago-text">Enviar Reporte de Pago</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. MODAL TICKET / QR -->
+  <div id="modal-ticket" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-200 dark:border-slate-700">
+      <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">¡Ticket Generado!</h3>
+      <p class="text-xs text-slate-500 mb-4">Presenta este código QR el día del evento</p>
+
+      <div id="qrcode-container" class="bg-white p-4 rounded-xl inline-block shadow-inner mb-4"></div>
+
+      <p id="ticket-code" class="font-mono text-sm font-bold text-indigo-600 mb-6"></p>
+
+      <div class="space-y-2">
+        <button id="btn-share-whatsapp" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition flex items-center justify-center space-x-2">
+          <i class="fa-brands fa-whatsapp text-lg"></i>
+          <span>Compartir en WhatsApp</span>
+        </button>
+        <button onclick="closeModal('modal-ticket')" class="w-full py-2 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-sm font-semibold rounded-xl">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. MODAL HISTORIAL -->
+  <div id="modal-historial" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 max-h-[90vh] flex flex-col">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Consultar Registros y Estado</h3>
+        <button onclick="closeModal('modal-historial')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="flex space-x-2 mb-6">
+        <input type="number" id="search-cedula" placeholder="Ingrese Cédula" class="flex-grow px-3 py-2 rounded-lg border dark:bg-slate-700 text-sm">
+        <button onclick="consultarHistorial()" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold text-sm hover:bg-indigo-700">
+          Buscar
+        </button>
+      </div>
+
+      <div id="historial-results" class="flex-grow overflow-y-auto space-y-4">
+        <p class="text-center text-sm text-slate-400">Ingrese un número de cédula para consultar sus registros.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. MODAL ADMIN CHECK-IN -->
+  <div id="modal-admin" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-slate-900 dark:text-white">Check-in Administrativo</h3>
+        <button onclick="closeModal('modal-admin')" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <form onsubmit="handleAdminCheckin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold uppercase mb-1">Contraseña Admin</label>
+          <input type="password" id="admin-pass" required class="w-full px-3 py-2 rounded-lg border dark:bg-slate-700 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase mb-1">Cédula del Asistente</label>
+          <input type="number" id="admin-cedula" required class="w-full px-3 py-2 rounded-lg border dark:bg-slate-700 text-sm">
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-indigo-600 text-white font-bold rounded-xl text-sm">
+          Aprobar / Marcar Check-in
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- LÓGICA FRONTEND JS -->
+  <script>
+    // ESTADO GLOBAL
+    let state = {
+      tasaBCV: 36.5,
+      planes: [],
+      eventos: [],
+      cuentas: [],
+      faqs: [],
+      datosTempInscripcion: null
+    };
+
+    // INICIALIZACIÓN
+    document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      initFechasDropdown();
+      cargarCatalogos();
+    });
+
+    // SISTEMA DE TEMA (CLARO/OSCURO)
+    function initTheme() {
+      const toggleBtn = document.getElementById("theme-toggle");
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      toggleBtn.addEventListener("click", () => {
+        document.documentElement.classList.toggle('dark');
+        localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      });
+    }
+
+    // CARGA DE DATOS DESDE APPS SCRIPT
+    async function cargarCatalogos() {
+      try {
+        const res = await fetch(SCRIPT_URL);
+        const data = await res.json();
+        if (data.success) {
+          state.tasaBCV = data.tasaBCV || 36.5;
+          state.planes = data.planes || [];
+          state.eventos = data.eventos || [];
+          state.cuentas = data.cuentasBancarias || [];
+          state.faqs = data.preguntasFrecuentes || [];
+
+          document.getElementById("bcv-rate").innerText = state.tasaBCV.toFixed(2);
+          if (data.configuracion && data.configuracion.nombre_app) {
+            document.getElementById("app-title").innerText = data.configuracion.nombre_app;
+          }
+
+          renderEventos();
+          renderPlanes();
+          renderFAQs();
+          renderCuentasBancarias();
+        }
+      } catch (err) {
+        console.error("Error al cargar datos:", err);
+      } finally {
+        document.getElementById("loader").classList.add("hidden");
+      }
+    }
+
+    // RENDERIZADO DE EVENTOS
+    function renderEventos() {
+      const grid = document.getElementById("grid-eventos");
+      grid.innerHTML = "";
+      state.eventos.forEach(evt => {
+        const disponible = evt.Cupos_Disponibles > 0;
+        const precio = parseFloat(evt.Precio_USD) || 0;
+        const esGratis = evt.Tipo_Entrada === "Gratis" || precio === 0;
+
+        grid.innerHTML += `
+          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition">
+            <div>
+              <div class="flex justify-between items-start mb-3">
+                <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400">
+                  ${evt.Categoria || 'Evento'}
+                </span>
+                <span class="text-xs font-bold px-2 py-1 rounded-full ${disponible ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">
+                  ${disponible ? `Cupos: ${evt.Cupos_Disponibles}` : 'Agotado'}
+                </span>
+              </div>
+              <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">${evt.Nombre_Evento}</h3>
+              <p class="text-xs text-slate-500 mb-1"><i class="fa-regular fa-calendar mr-1"></i> ${new Date(evt.Fecha_Hora).toLocaleString()}</p>
+              <p class="text-xs text-slate-500 mb-4"><i class="fa-solid fa-location-dot mr-1"></i> ${evt.Lugar}</p>
+            </div>
+            <div>
+              <div class="text-lg font-extrabold text-slate-900 dark:text-white mb-4">
+                ${esGratis ? 'GRATIS' : `$${precio.toFixed(2)} USD <span class="text-xs font-normal text-slate-400">(${(precio * state.tasaBCV).toFixed(2)} VES)</span>`}
+              </div>
+              <button 
+                onclick="abrirInscripcion('Evento', '${evt.ID_Evento}', '${evt.Nombre_Evento}', ${precio})"
+                ${!disponible ? 'disabled' : ''}
+                class="w-full py-2.5 rounded-xl font-bold text-sm transition ${disponible ? 'bg-indigo-600 hover:bg-indigo-700 text-white' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}">
+                ${disponible ? 'Inscribirme' : 'Agotado'}
+              </button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // RENDERIZADO DE PLANES
+    function renderPlanes() {
+      const grid = document.getElementById("grid-planes");
+      grid.innerHTML = "";
+      state.planes.forEach(plan => {
+        const precio = parseFloat(plan.Precio_USD) || 0;
+        const beneficios = (plan.Beneficios_Items || "").split(",");
+
+        grid.innerHTML += `
+          <div class="bg-white dark:bg-slate-800 rounded-2xl border-2 border-indigo-500/30 p-6 flex flex-col justify-between shadow-sm relative">
+            ${plan.Badge_Tag ? `<span class="absolute -top-3 right-6 bg-indigo-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">${plan.Badge_Tag}</span>` : ''}
+            <div>
+              <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-2">${plan.Nombre}</h3>
+              <div class="my-4">
+                <span class="text-3xl font-extrabold text-slate-900 dark:text-white">$${precio.toFixed(2)}</span>
+                <span class="text-xs text-slate-500">/ USD</span>
+                <p class="text-xs text-indigo-600 font-semibold mt-1">~ ${(precio * state.tasaBCV).toFixed(2)} VES</p>
+              </div>
+              <ul class="space-y-2 mb-6 text-xs text-slate-600 dark:text-slate-300">
+                ${beneficios.map(b => `<li><i class="fa-solid fa-check text-emerald-500 mr-2"></i>${b.trim()}</li>`).join('')}
+              </ul>
+            </div>
+            <button 
+              onclick="abrirInscripcion('Plan', '${plan.ID_Plan}', '${plan.Nombre}', ${precio})"
+              class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm rounded-xl transition">
+              Adquirir Plan
+            </button>
+          </div>
+        `;
+      });
+    }
+
+    // RENDERIZADO DE FAQS
+    function renderFAQs() {
+      const container = document.getElementById("container-faqs");
+      container.innerHTML = "";
+      state.faqs.forEach((faq, i) => {
+        container.innerHTML += `
+          <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+            <button onclick="toggleFAQ(${i})" class="w-full p-4 text-left font-bold text-sm flex justify-between items-center text-slate-800 dark:text-slate-200">
+              <span>${faq.Pregunta}</span>
+              <i id="faq-icon-${i}" class="fa-solid fa-chevron-down transition-transform"></i>
+            </button>
+            <div id="faq-ans-${i}" class="hidden p-4 pt-0 text-xs text-slate-500 dark:text-slate-400 border-t border-slate-100 dark:border-slate-700/50">
+              ${faq.Respuesta}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function toggleFAQ(index) {
+      const ans = document.getElementById(`faq-ans-${index}`);
+      const icon = document.getElementById(`faq-icon-${index}`);
+      ans.classList.toggle("hidden");
+      icon.classList.toggle("rotate-180");
+    }
+
+    function renderCuentasBancarias() {
+      const container = document.getElementById("list-cuentas");
+      container.innerHTML = "";
+      state.cuentas.forEach(c => {
+        container.innerHTML += `
+          <div>
+            <strong>${c.Metodo_Pago} (${c.Banco_Plataforma}):</strong> ${c.Titular} | RIF/CI: ${c.Identificacion_Rif} | Datos: ${c.Datos_Contacto}
+          </div>
+        `;
+      });
+    }
+
+    // LLENAR DROPDOWNS FECHA DE NACIMIENTO
+    function initFechasDropdown() {
+      const d = document.getElementById("field-dia");
+      const m = document.getElementById("field-mes");
+      const a = document.getElementById("field-anio");
+      
+      d.innerHTML = Array.from({length: 31}, (_, i) => `<option value="${i+1}">${i+1}</option>`).join('');
+      m.innerHTML = Array.from({length: 12}, (_, i) => `<option value="${i+1}">${i+1}</option>`).join('');
+      const year = new Date().getFullYear();
+      a.innerHTML = Array.from({length: 80}, (_, i) => `<option value="${year - i}">${year - i}</option>`).join('');
+    }
+
+    function toggleIglesia(val) {
+      document.getElementById("wrapper-cual-iglesia").classList.toggle("hidden", val !== "Sí");
+    }
+
+    // MANEJO DE MODALES
+    function openModal(id) {
+      document.getElementById(id).classList.remove("hidden");
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.add("hidden");
+    }
+
+    // ABRIR INSCRIPCIÓN
+    function abrirInscripcion(tipo, id, nombre, precio) {
+      document.getElementById("input-item-tipo").value = tipo;
+      document.getElementById("input-item-id").value = id;
+      document.getElementById("input-item-nombre").value = nombre;
+      document.getElementById("input-item-precio").value = precio;
+      document.getElementById("modal-title-item").innerText = `Inscripción: ${nombre}`;
+      openModal("modal-inscripcion");
+    }
+
+    // SUBMIT INSCRIPCIÓN
+    async function handleInscripcionSubmit(e) {
+      e.preventDefault();
+      
+      const precio = parseFloat(document.getElementById("input-item-precio").value) || 0;
+      const payload = {
+        cedula: document.getElementById("field-cedula").value,
+        nombre_apellido: document.getElementById("field-nombre").value,
+        dia: document.getElementById("field-dia").value,
+        mes: document.getElementById("field-mes").value,
+        anio: document.getElementById("field-anio").value,
+        prefijo: document.getElementById("field-prefijo").value,
+        telefono: document.getElementById("field-telefono").value,
+        correo: document.getElementById("field-correo").value,
+        pertenece_iglesia: document.getElementById("field-iglesia").value,
+        cual_iglesia: document.getElementById("field-cual-iglesia").value,
+        franela: document.getElementById("field-franela").value,
+        menu: document.getElementById("field-menu").value,
+        bebida: document.getElementById("field-bebida").value,
+        nombre_evento: document.getElementById("input-item-nombre").value,
+        plan: document.getElementById("input-item-nombre").value
+      };
+
+      state.datosTempInscripcion = payload;
+
+      if (precio === 0) {
+        // REGISTRO GRATUITO
+        payload.tipo_registro = "GRATIS";
+        const btn = document.getElementById("btn-submit-inscripcion");
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Procesando...`;
+
+        try {
+          const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+          const data = await res.json();
+          if (data.success) {
+            closeModal("modal-inscripcion");
+            mostrarTicket(data.id_congreso);
+          } else {
+            alert(data.message || "Error al procesar la inscripción.");
+          }
+        } catch (err) {
+          alert("Error de conexión con el servidor.");
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = `<span>Continuar</span>`;
+        }
+      } else {
+        // REGISTRO DE PAGO
+        closeModal("modal-inscripcion");
+        const totalVES = (precio * state.tasaBCV).toFixed(2);
+        document.getElementById("pago-usd").innerText = `$${precio.toFixed(2)}`;
+        document.getElementById("pago-tasa").innerText = state.tasaBCV.toFixed(2);
+        document.getElementById("pago-ves").innerText = `${totalVES} VES`;
+        document.getElementById("pago-monto").value = totalVES;
+        openModal("modal-pago");
+      }
+    }
+
+    // SUBMIT PAGO
+    async function handlePagoSubmit(e) {
+      e.preventDefault();
+
+      const btn = document.getElementById("btn-submit-pago");
+      btn.disabled = true;
+      document.getElementById("btn-pago-text").innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Procesando Pago...`;
+
+      const fileInput = document.getElementById("pago-file");
+      let base64File = "";
+
+      if (fileInput.files.length > 0) {
+        base64File = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (evt) => resolve(evt.target.result);
+          reader.readAsDataURL(fileInput.files[0]);
+        });
+      }
+
+      const payload = {
+        ...state.datosTempInscripcion,
+        tipo_registro: "PAGO",
+        tipo_pago: document.getElementById("pago-tipo").value,
+        fecha_pago: document.getElementById("pago-fecha").value,
+        banco_origen: document.getElementById("pago-banco-origen").value,
+        referencia: document.getElementById("pago-referencia").value,
+        banco_destino: document.getElementById("pago-banco-destino").value,
+        monto: document.getElementById("pago-monto").value,
+        comprobante_base64: base64File
+      };
+
+      try {
+        const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+        const data = await res.json();
+        if (data.success) {
+          closeModal("modal-pago");
+          mostrarTicket(data.id_congreso);
+        } else {
+          alert(data.message || "Error al procesar el pago.");
+        }
+      } catch (err) {
+        alert("Error de conexión al enviar reporte de pago.");
+      } finally {
+        btn.disabled = false;
+        document.getElementById("btn-pago-text").innerText = "Enviar Reporte de Pago";
+      }
+    }
+
+    // MOSTRAR TICKET CON QR
+    function mostrarTicket(codigo) {
+      const qrContainer = document.getElementById("qrcode-container");
+      qrContainer.innerHTML = "";
+      new QRCode(qrContainer, { text: codigo, width: 150, height: 150 });
+      document.getElementById("ticket-code").innerText = `CÓDIGO: ${codigo}`;
+
+      document.getElementById("btn-share-whatsapp").onclick = () => {
+        const msg = encodeURIComponent(`¡Hola! Ya estoy registrado. Mi código de ticket es: ${codigo}`);
+        window.open(`https://wa.me/?text=${msg}`, '_blank');
+      };
+
+      openModal("modal-ticket");
+    }
+
+    // CONSULTA HISTORIAL DE REGISTROS
+    async function consultarHistorial() {
+      const cedula = document.getElementById("search-cedula").value;
+      if (!cedula) return;
+      const resContainer = document.getElementById("historial-results");
+      resContainer.innerHTML = `<p class="text-center text-sm"><i class="fa-solid fa-spinner fa-spin"></i> Buscando...</p>`;
+
+      try {
+        const res = await fetch(`${SCRIPT_URL}?cedula=${cedula}`);
+        const data = await res.json();
+
+        if (!data.success) {
+          resContainer.innerHTML = `<p class="text-center text-sm text-red-500">Error al consultar.</p>`;
+          return;
+        }
+
+        let html = "";
+        
+        // Gratis
+        (data.inscripciones_gratis || []).forEach(g => {
+          html += `
+            <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 flex justify-between items-center text-xs">
+              <div>
+                <p class="font-bold">${g.Nombre_Evento}</p>
+                <p class="text-slate-400">${g.ID_Congreso}</p>
+              </div>
+              <span class="px-2 py-1 rounded bg-emerald-100 text-emerald-800 font-bold">Gratis / Aprobado</span>
+            </div>
+          `;
+        });
+
+        // Pagos
+        (data.pagos || []).forEach(p => {
+          let badgeClass = "bg-amber-100 text-amber-800";
+          if (p.Status.includes("Aprobado")) badgeClass = "bg-emerald-100 text-emerald-800";
+          if (p.Status.includes("Rechazado")) badgeClass = "bg-red-100 text-red-800";
+
+          html += `
+            <div class="p-3 rounded-xl border border-slate-200 dark:border-slate-700 flex justify-between items-center text-xs">
+              <div>
+                <p class="font-bold">${p.Modalidad}</p>
+                <p class="text-slate-400">Ref: ${p.Referencia} | ${p.Monto} VES</p>
+              </div>
+              <span class="px-2 py-1 rounded font-bold ${badgeClass}">${p.Status}</span>
+            </div>
+          `;
+        });
+
+        resContainer.innerHTML = html || `<p class="text-center text-sm text-slate-400">No se encontraron registros para esta cédula.</p>`;
+      } catch (err) {
+        resContainer.innerHTML = `<p class="text-center text-sm text-red-500">Error de conexión.</p>`;
+      }
+    }
+
+    // CHECK-IN ADMINISTRATIVO
+    async function handleAdminCheckin(e) {
+      e.preventDefault();
+      const payload = {
+        action: "admin_checkin",
+        password: document.getElementById("admin-pass").value,
+        cedula: document.getElementById("admin-cedula").value
+      };
+
+      try {
+        const res = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+        const data = await res.json();
+        alert(data.message);
+        if (data.success) closeModal("modal-admin");
+      } catch (err) {
+        alert("Error de conexión con el servidor.");
+      }
+    }
+  </script>
+</body>
+</html>
